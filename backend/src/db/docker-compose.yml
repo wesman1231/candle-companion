@@ -1,0 +1,16 @@
+services:
+  candledb:
+    image: postgres:latest
+    hostname: localhost
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: AFFicioman123123
+      POSTGRES_DB: candle_companion_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql
+
+volumes:
+  pgdata:
