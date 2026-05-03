@@ -2,16 +2,8 @@ from playwright.sync_api import sync_playwright
 import re
 import random
 import asyncio
-from tortoise import Tortoise
-from db.dbModels import Candles, Fragrances, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB
 
-async def init():
-    await Tortoise.init(
-        db_url = f'postgres://{POSTGRES_USER}:{POSTGRES_PASSWORD}@localhost:5432/{POSTGRES_DB}'
-    )
-
-async def yankeeScrape():
-    await init()
+def yankeeScrape():
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(headless=False)
         page = browser.new_page()
@@ -20,7 +12,7 @@ async def yankeeScrape():
         ad = page.wait_for_selector('#attentive_creative', timeout = 7000)
         if ad.is_visible():
             page.keyboard.press('Escape')
-
+            
         moreResults = page.get_by_role('button').get_by_text('More Results')
 
 
