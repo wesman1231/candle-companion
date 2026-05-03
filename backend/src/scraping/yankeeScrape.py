@@ -3,10 +3,11 @@ import re
 import random
 import asyncio
 from tortoise import Tortoise
+from db.dbModels import Candles, Fragrances, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB
 
 async def init():
     await Tortoise.init(
-        db_url = ''
+        db_url = f'postgres://{POSTGRES_USER}:{POSTGRES_PASSWORD}@localhost:5432/{POSTGRES_DB}'
     )
 
 async def yankeeScrape():
