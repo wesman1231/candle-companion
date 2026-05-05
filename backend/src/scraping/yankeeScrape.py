@@ -1,7 +1,17 @@
 from playwright.sync_api import sync_playwright
 import re
 import random
+import psycopg2
 import asyncio
+
+def insertData():
+    conn = psycopg2.connect("dbname=candle_companion_db user=admin")
+
+    cur = conn.cursor()
+
+
+
+
 
 def yankeeScrape():
     with sync_playwright() as playwright:
@@ -31,7 +41,16 @@ def yankeeScrape():
                 page.keyboard.press('Escape')
             
             title = page.locator('h1').first.inner_text()
-            print(title)
+            page.get_by_role('button').get_by_text('About This Fragrance').click()
+
+            fragrance_info = page.get_by_role("region").first.inner_text()
+            descriptionMatch = re.search(r"^(.*?)(?=Top:|Top notes:)", fragrance_info, re.DOTALL | re.IGNORECASE)
+            
+
+            if descriptionMatch:
+                description = descriptionMatch.group(1).strip()
+
+            print(title, description)
             page.go_back()
         
     browser.close()
