@@ -1,0 +1,41 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+  previewFeatures = ["relationJoins"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model candles {
+  candle_id          String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  candle_name        String               @db.VarChar(255)
+  candle_style       String               @db.VarChar(255)
+  candle_description String?
+  candle_brand       String?              @db.VarChar(255)
+  candles_fragrances candles_fragrances[]
+}
+
+model candles_fragrances {
+  candle_id    String     @db.Uuid
+  fragrance_id String     @db.Uuid
+  candles      candles    @relation(fields: [candle_id], references: [candle_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_candle")
+  fragrances   fragrances @relation(fields: [fragrance_id], references: [fragrance_id], onDelete: Cascade, onUpdate: NoAction, map: "fk_fragrance")
+
+  @@id([candle_id, fragrance_id])
+}
+
+model fragrances {
+  fragrance_id       String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  fragrance_name     String               @unique @db.VarChar(255)
+  candles_fragrances candles_fragrances[]
+}
+
+enum candle_style {
+  Jar
+  Large_Tumbler @map("Large Tumbler")
+  Small_Tumbler @map("Small Tumbler")
+  Three_Wick    @map("Three-Wick")
+  Mini
+}
