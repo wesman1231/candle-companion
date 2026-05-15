@@ -1,6 +1,7 @@
 node_modules
 # Keep environment variables out of version control
 .env
-
+docker-compose*.yml
+docker-compose*.yaml
 /generated/prisma
 docker-compose
