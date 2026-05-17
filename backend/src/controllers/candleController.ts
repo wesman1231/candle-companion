@@ -14,6 +14,8 @@ export async function getCandles(req: Request, res: Response) {
     page: number
   };
 
+  const validCandleStyles = ['jar', 'large lumbler', 'small lumbler', 'three-wick', 'mini'];
+
   const candleQuery: CandleQuery = req.body.candleQuery;
 
   const candleName = candleQuery.candleName?.toLowerCase();
@@ -63,6 +65,22 @@ export async function getCandles(req: Request, res: Response) {
                 .execute()
         
         
+        if(req.body === undefined){
+            return res.status(400).json({error: 'Bad Request'});
+        }
+
+        if(candleName && typeof candleName !== 'string'){
+            return res.status(400).json({error: 'Bad Request'});
+        }
+
+        if(candleStyle && !validCandleStyles.includes(candleStyle)){
+            return res.status(400).json({error: 'Bad Request'});
+        }
+
+        if(fragranceArray && fragranceArray.every(item => typeof item !== 'string')){
+            return res.status(400).json({error: 'Bad Request'});
+        }
+        
         if(query.length === 0){
             return res.status(200).json({message: 'No Results Found'});
         }
@@ -72,6 +90,4 @@ export async function getCandles(req: Request, res: Response) {
     catch(error){
         return res.status(500).json({error: 'Internal Server'})
     }
-
-    
 }

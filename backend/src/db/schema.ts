@@ -16,7 +16,7 @@ export type UUID = string
 export type CandleStyle =
   | 'jar'
   | 'large lumbler'
-  | 'lmall lumbler'
+  | 'small lumbler'
   | 'three-wick'
   | 'mini'
 
