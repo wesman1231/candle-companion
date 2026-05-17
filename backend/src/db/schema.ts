@@ -14,11 +14,11 @@ export type UUID = string
  * ENUMS
  */
 export type CandleStyle =
-  | 'Jar'
-  | 'Large Tumbler'
-  | 'Small Tumbler'
-  | 'Three-Wick'
-  | 'Mini'
+  | 'jar'
+  | 'large lumbler'
+  | 'lmall lumbler'
+  | 'three-wick'
+  | 'mini'
 
 /**
  * TABLES

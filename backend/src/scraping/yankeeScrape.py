@@ -13,7 +13,7 @@ def insertData(candleName, candleStyle, candleDescription, fragrances):
     with psycopg.connect(f"dbname={dbName} user={dbUser} password={dbPassword}") as conn: #REPLACE WITH ENV VARIABLES
         #insert candle, insert each fragrance, insert candle and fragrance ids into junction table
         with conn.cursor() as cur:
-            cur.execute("INSERT INTO candles (candle_name, candle_style, candle_description, candle_brand) VALUES (%s, %s, %s, %s) RETURNING candle_id", (candleName, candleStyle, candleDescription, "Yankee"))
+            cur.execute("INSERT INTO candles (candle_name, candle_style, candle_description, candle_brand) VALUES (%s, %s, %s, %s) RETURNING candle_id", (candleName, candleStyle, candleDescription, "yankee"))
 
             candle_id = cur.fetchone()[0]
 
@@ -82,7 +82,7 @@ def yankeeScrape():
             except:
                 continue
 
-            title = newPage.locator('h1').first.inner_text()
+            title = newPage.locator('h1').first.inner_text().lower()
             candleInfo = newPage.get_by_role('region').first.inner_text()
 
             descriptionMatch = re.search(
@@ -107,19 +107,19 @@ def yankeeScrape():
             
             style = "not listed"
             if "original-jar-candle" in newPage.url:
-                style = "Jar"
+                style = "jar"
             elif "premium-two-wick-12oz-candle" in newPage.url:
-                style = "Two-Wick"
+                style = "two-wick"
             elif "large-tumblers" in newPage.url:
-                style = "Large Tumbler"
+                style = "large tumbler"
             elif "3-wick-candles" in newPage.url:
-                style = "Three Wick"
+                style = "three wick"
             elif "medium-pillars" in newPage.url:
-                style = "Medium Pillar"
+                style = "medium pillar"
             elif "small-tumblers" in newPage.url:
-                style = "Small Tumbler"
+                style = "small tumbler"
             elif "mini-candles" in newPage.url:
-                style = "Mini"
+                style = "mini"
 
 
             for pattern in patterns:
