@@ -80,6 +80,7 @@ def yankeeScrape():
                 fragranceInfo = newPage.get_by_role('button').get_by_text('About This Fragrance')
                 fragranceInfo.click()
             except:
+                newPage.close()
                 continue
 
             title = newPage.locator('h1').first.inner_text().lower()
@@ -98,9 +99,9 @@ def yankeeScrape():
             fragrances = []
 
             patterns = [
-                r"Top\s*(?:notes?)?\s*:\s*(.*?)(?=Mid\s*(?:notes?)?\s*:|Base\s*(?:Notes?)?\s*:|Top note is|$)",
+               r"Top\s*(?:notes?)?\s*:\s*(.*?)(?=(?:Mid|Middle)\s*(?:notes?)?\s*:|Base\s*(?:Notes?)?\s*:|Top note is|$)",
 
-                r"Mid\s*(?:notes?)?\s*:\s*(.*?)(?=Base\s*(?:notes?)?\s*:|Top note is|$)",
+                r"(?:Mid|Middle)\s*(?:notes?)?\s*:\s*(.*?)(?=Base\s*(?:notes?)?\s*:|Top note is|$)",
 
                 r"Base\s*(?:notes?)?\s*:\s*(.*?)(?=Top note is|$)"
             ]
