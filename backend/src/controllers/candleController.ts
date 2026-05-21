@@ -9,7 +9,7 @@ export type CandleQuery = {
   candleStyle?: CandleStyle;
   fragrances?: string[];
   limit?: number;
-  page: number;
+  page?: number;
 };
 
 export async function getCandles(req: Request, res: Response) {
