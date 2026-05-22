@@ -1,10 +1,7 @@
-import dotenv from 'dotenv';
-dotenv.config()
-import { Redis as Valkey } from 'ioredis';
 import type { CandleQuery } from '../../controllers/candleController.js';
 import crypto from 'crypto';
 
-async function genrateCacheKey(candleQuery: CandleQuery){
+export function genrateCacheKey(candleQuery: CandleQuery){
     const candleName = candleQuery.candleName?.toLowerCase();
     const candleStyle = candleQuery.candleStyle;
     const fragranceArray = candleQuery.fragrances;
@@ -15,8 +12,5 @@ async function genrateCacheKey(candleQuery: CandleQuery){
 
     const textToHash = `candle_query:candle_name:${candleName}:candle_style:${candleStyle}:candle_fragrances:${sortedFragrances}`
     const hashKey = crypto.createHash('md5').update(textToHash).digest('hex');
-
-    console.log(hashKey);
+    return hashKey;
 }
-
-genrateCacheKey({candleName: 'liberty bloom', candleStyle: 'jar'});
