@@ -27,8 +27,6 @@ export async function readFromCache(cacheKey: string){
             return null;
         }
 
-        console.log('Cache Hit!');
-
         return JSON.parse(result);
     }
     catch(error){

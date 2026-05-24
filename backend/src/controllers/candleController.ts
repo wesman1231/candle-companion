@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import type { Database } from "../db/schema.js";
 import { buildGetQuery } from "./controllerUtils/buildGetQuery.js";
-import { genrateCacheKey } from './controllerUtils/generateCacheKey.js'
+import { generateCacheKey } from './controllerUtils/generateCacheKey.js'
 import { readFromCache } from './controllerUtils/readQueryFromCache.js';
 import { addToCache } from './controllerUtils/addQueryToCache.js'
 
@@ -41,9 +41,6 @@ export async function getCandles(req: Request, res: Response) {
   if (page === 1) {
     offset = 0;
   }
-  
-  const cacheKey = genrateCacheKey(candleQuery);
-  const cacheResult = await readFromCache(cacheKey)
 
   await executeQuery();
 
@@ -52,6 +49,9 @@ export async function getCandles(req: Request, res: Response) {
       return res.status(400).json({ error: "Bad Request" });
     }
     
+    const cacheKey = generateCacheKey(candleQuery);
+    const cacheResult = await readFromCache(cacheKey);
+
     if(cacheResult !== null){
       return res.status(200).json(cacheResult)
     }

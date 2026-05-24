@@ -21,8 +21,7 @@ export async function addToCache(cacheKey: string, data:object){
     });
 
     try{
-        const add = await valkey.set(cacheKey, JSON.stringify(data), 'EX', 600);
-        console.log(add, 'Added to cache!');
+        await valkey.set(cacheKey, JSON.stringify(data));
     }
     catch(error){
         console.error(error);

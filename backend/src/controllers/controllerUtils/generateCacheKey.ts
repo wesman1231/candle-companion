@@ -1,7 +1,7 @@
 import type { CandleQuery } from '../../controllers/candleController.js';
 import crypto from 'crypto';
 
-export function genrateCacheKey(candleQuery: CandleQuery){
+export function generateCacheKey(candleQuery: CandleQuery){
     const candleName = candleQuery.candleName?.toLowerCase();
     const candleStyle = candleQuery.candleStyle;
     const fragranceArray = candleQuery.fragrances;
