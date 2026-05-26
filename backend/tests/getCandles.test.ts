@@ -51,6 +51,11 @@ beforeEach(() => {
 });
 
 describe("tests candle retrieval from db", () => {
+  
+  // =========================================================================
+  // DIRECT DATABASE TESTS, CACHE TESTING FURTHER DOWN
+  // =========================================================================
+  
   test("should return 200 status when candle name is provided", async () => {
     mockReq = {
       body: {

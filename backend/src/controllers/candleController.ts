@@ -14,7 +14,7 @@ export type CandleQuery = {
   limit?: number;
   page?: number;
 };
-//TODO: ADD CACHE CHECKING.GENERATE CACHE KEY WITH QUERY USING SEPARATE FUNCTION, CHECK FOR THAT KEY, IF IT DOESN'T EXIST, QUERY DB AND SET IT IN CACHE
+
 export async function getCandles(req: Request, res: Response) {
   const validCandleStyles = [
     "jar",

@@ -1,0 +1,24 @@
+{
+  "name": "candle-companion",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wesman1231/candle-companion.git"
+  },
+  "keywords": [],
+  "author": "Wesley",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/wesman1231/candle-companion/issues"
+  },
+  "homepage": "https://github.com/wesman1231/candle-companion#readme",
+  "dependencies": {
+    "vite": "^8.0.14"
+  }
+}
