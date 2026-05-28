@@ -1,12 +1,18 @@
 import './App.css'
 import CandleParams from './candleSearch/candleParamsDiv';
+import { Routes, Route } from 'react-router-dom'
+import Navbar from './navbar/navbar';
 
 function App() {
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen">
-      <CandleParams />
-    </div>
+    <>
+      <Navbar />
+      <Routes>
+        <Route path='/search' element={<CandleParams />}/>
+      </Routes>
+    </>
+    
   )
 }
 

@@ -809,14 +809,18 @@ export default function CandleParams(){
     
     return(
         <>
-            <div className="flex flex-col items-center justify-center w-[75vw] h-[55vh] border-4 border-purple-300 rounded-2xl md:w-1/2 lg:w-1/3">
+        <div className="flex flex-col items-center justify-center h-screen">
+            <div className="flex flex-col items-center justify-center w-[75vw] h-[55vh] border-4 border-gray-300 rounded-2xl md:w-1/2 lg:w-1/3 font-poppins">
                 <label htmlFor='candleName'>Candle Name</label>
                 <input list="candleName_List" id="candleName" name="candleName" className="border-2 border-black-200"></input>
                 <label htmlFor='candleStyle'>Candle Style</label>
                 <input list="candleStyle_List" id="candleStyle" name="candleStyle" className="border-2 border-black-200"></input>
                 <label htmlFor='candleFragrances'>Candle Fragrances</label>
                 <input list="candleFragrances_List" id="candleFragrances" name="candleFragrances" className="border-2 border-black-200"></input>
+                <button type='button' className='border-2 w-24 hover:bg-gray-500 transition-colors'>Search</button>
             </div>
+        </div>
+            
 
             <datalist id='candleName_List'>
                 {canndleNames.map((name) => (
