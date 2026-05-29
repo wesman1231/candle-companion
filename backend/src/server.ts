@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import { apiURL } from './apiURL.js';
 import candleRoutes from './routes/candleRoutes.js'
 import dotenv from 'dotenv';
 dotenv.config();
@@ -17,5 +18,5 @@ app.get('/', (req, res) => {
 app.use('/candles', candleRoutes)
 
 app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
+  console.log(`Server running at ${apiURL()}:${port}`);
 });
