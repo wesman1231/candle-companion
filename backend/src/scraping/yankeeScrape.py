@@ -9,7 +9,7 @@ import psycopg
 load_dotenv()
 
 
-async def insertData(candleName, candleStyle, candleDescription, fragrances):
+async def insertData(candleName, candleStyle, candleDescription, fragrances, candleImage):
     dbName = os.getenv("DB_NAME")
     dbUser = os.getenv("DB_USER")
     dbPassword = os.getenv("DB_PASSWORD")
@@ -20,11 +20,27 @@ async def insertData(candleName, candleStyle, candleDescription, fragrances):
     ) as conn:
         async with conn.cursor() as cur:
             await cur.execute(
-                "INSERT INTO candles (candle_name, candle_style, candle_description, candle_brand) VALUES (%s, %s, %s, %s) RETURNING candle_id",
-                (candleName, candleStyle, candleDescription, "yankee"),
+            """
+            INSERT INTO candles (
+                candle_name,
+                candle_style,
+                candle_description,
+                candle_brand,
+                candle_image_url
             )
+            VALUES (%s, %s, %s, %s, %s)
+            ON CONFLICT (candle_name, candle_style)
+            DO NOTHING
+            RETURNING candle_id
+            """,
+    (candleName, candleStyle, candleDescription, "yankee", candleImage)
+)
 
             result = await cur.fetchone()
+
+            if result is None:
+                return False
+
             candle_id = result[0]
 
             for fragrance in fragrances:
@@ -154,8 +170,13 @@ async def yankeeScrape():
                     ]
                     fragrances.extend(notes)
 
-            print(title, description, fragrances, style)
-            await insertData(title, style, description, fragrances)
+            thumbnail_container = newPage.get_by_test_id("image-gallery-thumbnails").first
+    
+            image_url = await thumbnail_container.locator("img").first.get_attribute("src")
+
+            print(title, description, fragrances, style, image_url)
+            if await insertData(title, style, description, fragrances, image_url) == False:
+                await newPage.close()
             await newPage.close()
 
         await browser.close()
