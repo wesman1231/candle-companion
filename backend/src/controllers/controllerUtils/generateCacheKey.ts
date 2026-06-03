@@ -1,10 +1,10 @@
-import type { CandleQuery } from '../../controllers/candleController.js';
+import type { Candle } from '../../controllers/candleController.js';
 import crypto from 'crypto';
 
-export function generateCacheKey(candleQuery: CandleQuery){
-    const candleName = candleQuery.candleName?.toLowerCase();
-    const candleStyle = candleQuery.candleStyle;
-    const fragranceArray = candleQuery.fragrances;
+export function generateCacheKey(candle: Candle){
+    const candleName = candle.candleName?.toLowerCase();
+    const candleStyle = candle.candleStyle;
+    const fragranceArray = candle.fragrances;
     let sortedFragrances: string[] | undefined;
     if(fragranceArray){
         sortedFragrances = fragranceArray.sort();

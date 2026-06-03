@@ -11,7 +11,7 @@ const mockBuildGetQuery = jest.fn(() => ({
   execute: mockExecute,
 }));
 
-const mockGenerateCacheKey = jest.fn<(query: CandleQuery) => string>();
+const mockGenerateCacheKey = jest.fn<(query: any) => string>();
 const mockReadFromCache = jest.fn<(key: string) => Promise<any | null>>();
 const mockAddToCache = jest.fn<(key: string, data: any) => void>();
 
@@ -60,7 +60,7 @@ describe("tests candle retrieval from db", () => {
     mockReq = {
       body: {
         candleQuery: {
-          candleName: "floral drift",
+          candle: { candleName: "floral drift" },
           page: 1,
           limit: 10,
         },
@@ -69,7 +69,7 @@ describe("tests candle retrieval from db", () => {
 
     await getCandles(mockReq as Request, mockRes as Response);
 
-    expect(mockGenerateCacheKey).toHaveBeenCalledWith(mockReq.body.candleQuery);
+    expect(mockGenerateCacheKey).toHaveBeenCalledWith(mockReq.body.candleQuery.candle);
     expect(mockReadFromCache).toHaveBeenCalledWith("mocked-cache-key");
     expect(mockBuildGetQuery).toHaveBeenCalled();
     expect(mockExecute).toHaveBeenCalled();
@@ -80,7 +80,7 @@ describe("tests candle retrieval from db", () => {
     mockReq = {
       body: {
         candleQuery: {
-          candleStyle: "jar",
+          candle: { candleStyle: "jar" },
           page: 1,
           limit: 10,
         },
@@ -98,7 +98,7 @@ describe("tests candle retrieval from db", () => {
     mockReq = {
       body: {
         candleQuery: {
-          fragrances: ["vanilla", "clove"],
+          candle: { fragrances: ["vanilla", "clove"] },
           page: 1,
           limit: 10,
         },
@@ -116,9 +116,11 @@ describe("tests candle retrieval from db", () => {
     mockReq = {
       body: {
         candleQuery: {
-          candleName: "floral drift",
-          candleStyle: "jar",
-          fragrances: ["vanilla", "clove"],
+          candle: {
+            candleName: "floral drift",
+            candleStyle: "jar",
+            fragrances: ["vanilla", "clove"],
+          },
           page: 1,
           limit: 10,
         },
@@ -136,7 +138,7 @@ describe("tests candle retrieval from db", () => {
     mockReq = {
       body: {
         candleQuery: {
-          candleStyle: "invalid style",
+          candle: { candleStyle: "invalid style" },
           page: 1,
           limit: 10,
         },
@@ -163,7 +165,7 @@ describe("tests candle retrieval from db", () => {
     mockReq = {
       body: {
         candleQuery: {
-          candleName: "floral drift",
+          candle: { candleName: "floral drift" },
           page: 1,
           limit: 10,
         },
@@ -173,9 +175,9 @@ describe("tests candle retrieval from db", () => {
     await getCandles(mockReq as Request, mockRes as Response);
 
     expect(mockReadFromCache).toHaveBeenCalledWith("mocked-cache-key");
-    expect(mockBuildGetQuery).toHaveBeenCalled(); // Hits DB
+    expect(mockBuildGetQuery).toHaveBeenCalled(); 
     expect(mockExecute).toHaveBeenCalled();
-    expect(mockAddToCache).toHaveBeenCalledWith("mocked-cache-key", mockDbData); // Saves result
+    expect(mockAddToCache).toHaveBeenCalledWith("mocked-cache-key", mockDbData); 
     expect(mockRes.status).toHaveBeenCalledWith(200);
     expect(mockRes.json).toHaveBeenCalledWith({ result: mockDbData });
   });
@@ -187,7 +189,7 @@ describe("tests candle retrieval from db", () => {
     mockReq = {
       body: {
         candleQuery: {
-          candleName: "floral drift",
+          candle: { candleName: "floral drift" },
           page: 1,
           limit: 10,
         },
@@ -198,7 +200,6 @@ describe("tests candle retrieval from db", () => {
 
     expect(mockReadFromCache).toHaveBeenCalledWith("mocked-cache-key");
     
-    // Database utilities and caching updates are completely bypassed
     expect(mockBuildGetQuery).not.toHaveBeenCalled();
     expect(mockExecute).not.toHaveBeenCalled();
     expect(mockAddToCache).not.toHaveBeenCalled();

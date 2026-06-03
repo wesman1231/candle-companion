@@ -12,7 +12,7 @@ app.use(express.json());
 
 
 app.get('/', (req, res) => {
-  res.send('Hello World!');
+  res.send('Healthy');
 });
 
 app.use('/candles', candleRoutes)

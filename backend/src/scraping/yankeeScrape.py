@@ -1,95 +1,117 @@
-from playwright.sync_api import sync_playwright
-import re
-import random
-import psycopg
+import asyncio
 import os
+import random
+import re
 from dotenv import load_dotenv
+from playwright.async_api import async_playwright
+import psycopg
+
 load_dotenv()
 
-def insertData(candleName, candleStyle, candleDescription, fragrances):
+
+async def insertData(candleName, candleStyle, candleDescription, fragrances):
     dbName = os.getenv("DB_NAME")
     dbUser = os.getenv("DB_USER")
     dbPassword = os.getenv("DB_PASSWORD")
-    with psycopg.connect(f"dbname={dbName} user={dbUser} password={dbPassword}") as conn: #REPLACE WITH ENV VARIABLES
-        #insert candle, insert each fragrance, insert candle and fragrance ids into junction table
-        with conn.cursor() as cur:
-            cur.execute("INSERT INTO candles (candle_name, candle_style, candle_description, candle_brand) VALUES (%s, %s, %s, %s) RETURNING candle_id", (candleName, candleStyle, candleDescription, "yankee"))
+    dbHost = os.getenv("DB_HOST", "127.0.0.1")
 
-            candle_id = cur.fetchone()[0]
+    async with await psycopg.AsyncConnection.connect(
+        f"dbname={dbName} user={dbUser} password={dbPassword} host={dbHost}"
+    ) as conn:
+        async with conn.cursor() as cur:
+            await cur.execute(
+                "INSERT INTO candles (candle_name, candle_style, candle_description, candle_brand) VALUES (%s, %s, %s, %s) RETURNING candle_id",
+                (candleName, candleStyle, candleDescription, "yankee"),
+            )
+
+            result = await cur.fetchone()
+            candle_id = result[0]
 
             for fragrance in fragrances:
-                cur.execute("""
-                WITH upsert_fragrance AS (
-                    INSERT INTO fragrances (fragrance_name) 
-                    VALUES(%s)
-                    ON CONFLICT (fragrance_name) DO NOTHING
-                    RETURNING fragrance_id
-                ),
-                final_fragrance AS (
-                    SELECT fragrance_id FROM upsert_fragrance
-                    UNION ALL
-                    SELECT fragrance_id FROM fragrances WHERE fragrance_name = (%s)
-                    LIMIT 1
+                await cur.execute(
+                    """
+                    WITH upsert_fragrance AS (
+                        INSERT INTO fragrances (fragrance_name) 
+                        VALUES(%s)
+                        ON CONFLICT (fragrance_name) DO NOTHING
+                        RETURNING fragrance_id
+                    ),
+                    final_fragrance AS (
+                        SELECT fragrance_id FROM upsert_fragrance
+                        UNION ALL
+                        SELECT fragrance_id FROM fragrances WHERE fragrance_name = (%s)
+                        LIMIT 1
+                    )
+                    INSERT INTO candles_fragrances (candle_id, fragrance_id)
+                    SELECT %s, fragrance_id FROM final_fragrance LIMIT 1
+                    ON CONFLICT (candle_id, fragrance_id) DO NOTHING;
+                    """,
+                    (fragrance, fragrance, candle_id),
                 )
-                INSERT INTO candles_fragrances (candle_id, fragrance_id)
-                SELECT %s, fragrance_id FROM final_fragrance LIMIT 1
-                ON CONFLICT (candle_id, fragrance_id) DO NOTHING;
-                """, (fragrance, fragrance, candle_id))
-            conn.commit()
+            await conn.commit()
 
-def closeAd(page):
+
+async def closeAd(page):
     try:
-        ad = page.wait_for_selector('#attentive_creative', timeout = 7500)
-        if ad.is_visible():
-            page.keyboard.press('Escape')
-    except:
+        ad = await page.wait_for_selector("#attentive_creative", timeout=7500)
+        if ad and await ad.is_visible():
+            await page.keyboard.press("Escape")
+    except Exception:
         print("no ad")
         pass
 
-def yankeeScrape():
-    with sync_playwright() as playwright:
-        browser = playwright.chromium.launch(headless=False)
-        page = browser.new_page()
-        page.goto("https://www.yankeecandle.com/yankee-candle/candles")
-        #page.goto("https://www.yankeecandle.com/yankee-candle/candles/?start=0&sz=435&view=product")
 
-        moreResults = page.get_by_role('button').get_by_text('More Results')
-        closeAd(page)
-        while moreResults.is_visible():
-            page.wait_for_timeout(random.uniform(2000, 4000))
-            moreResults.click()
-            if page.locator('[aria-labelledby^="name_SAP_"]').count() == 426:
-                break
+async def yankeeScrape():
+    async with async_playwright() as playwright:
+        browser = await playwright.chromium.launch(headless=False)
+        page = await browser.new_page()
+        await page.goto("https://www.yankeecandle.com/yankee-candle/candles")
 
-        links = page.locator('[aria-labelledby^="name_SAP_"]').evaluate_all("(candles) => candles.map((candle) => candle.getAttribute('href'))")
+        moreResults = page.get_by_role("button").get_by_text("More Results")
+        await closeAd(page)
+
+        while await moreResults.is_visible():
+            await page.wait_for_timeout(random.uniform(2000, 4000))
+
+            await moreResults.click()
+
+
+        links = await page.locator(
+            '[aria-labelledby^="name_SAP_"]'
+        ).evaluate_all(
+            "(candles) => candles.map((candle) => candle.getAttribute('href'))"
+        )
 
         for link in links:
-            page.wait_for_timeout(random.uniform(2000, 5500))
-            
-            newPage = browser.new_page()
+            await page.wait_for_timeout(random.uniform(2000, 5500))
+
+            newPage = await browser.new_page()
             try:
-                url = f'https://www.yankeecandle.com{link}'
-                newPage.goto(url)
-            except:
+                url = f"https://www.yankeecandle.com{link}"
+                await newPage.goto(url)
+            except Exception:
                 print("could not load page")
+                await newPage.close()
                 continue
 
-            closeAd(newPage)
+            await closeAd(newPage)
 
             try:
-                fragranceInfo = newPage.get_by_role('button').get_by_text('About This Fragrance')
-                fragranceInfo.click()
-            except:
-                newPage.close()
+                fragranceInfo = newPage.get_by_role("button").get_by_text(
+                    "About This Fragrance"
+                )
+                await fragranceInfo.click()
+            except Exception:
+                await newPage.close()
                 continue
 
-            title = newPage.locator('h1').first.inner_text().lower()
-            candleInfo = newPage.get_by_role('region').first.inner_text()
+            title = (await newPage.locator("h1").first.inner_text()).lower()
+            candleInfo = await newPage.get_by_role("region").first.inner_text()
 
             descriptionMatch = re.search(
                 r"(.*?)(?:Top(?:\s+Notes)?\s*:)",
                 candleInfo,
-                re.DOTALL | re.IGNORECASE
+                re.DOTALL | re.IGNORECASE,
             )
 
             if descriptionMatch:
@@ -99,29 +121,27 @@ def yankeeScrape():
             fragrances = []
 
             patterns = [
-               r"Top\s*(?:notes?)?\s*:\s*(.*?)(?=(?:Mid|Middle)\s*(?:notes?)?\s*:|Base\s*(?:Notes?)?\s*:|Top note is|$)",
-
+                r"Top\s*(?:notes?)?\s*:\s*(.*?)(?=(?:Mid|Middle)\s*(?:notes?)?\s*:|Base\s*(?:Notes?)?\s*:|Top note is|$)",
                 r"(?:Mid|Middle)\s*(?:notes?)?\s*:\s*(.*?)(?=Base\s*(?:notes?)?\s*:|Top note is|$)",
-
-                r"Base\s*(?:notes?)?\s*:\s*(.*?)(?=Top note is|$)"
+                r"Base\s*(?:notes?)?\s*:\s*(.*?)(?=Top note is|$)",
             ]
-            
-            style = "not listed"
-            if "original-jar-candle" in newPage.url:
-                style = "jar"
-            elif "premium-two-wick-12oz-candle" in newPage.url:
-                style = "two-wick"
-            elif "large-tumblers" in newPage.url:
-                style = "large tumbler"
-            elif "3-wick-candles" in newPage.url:
-                style = "three wick"
-            elif "medium-pillars" in newPage.url:
-                style = "medium pillar"
-            elif "small-tumblers" in newPage.url:
-                style = "small tumbler"
-            elif "mini-candles" in newPage.url:
-                style = "mini"
 
+            style = "not listed"
+            current_url = newPage.url
+            if "original-jar-candle" in current_url:
+                style = "jar"
+            elif "premium-two-wick-12oz-candle" in current_url:
+                style = "two-wick"
+            elif "large-tumblers" in current_url:
+                style = "large tumbler"
+            elif "3-wick-candles" in current_url:
+                style = "three wick"
+            elif "medium-pillars" in current_url:
+                style = "medium pillar"
+            elif "small-tumblers" in current_url:
+                style = "small tumbler"
+            elif "mini-candles" in current_url:
+                style = "mini"
 
             for pattern in patterns:
                 match = re.search(pattern, candleInfo)
@@ -129,20 +149,17 @@ def yankeeScrape():
                 if match:
                     notes = [
                         note.strip(" .\"'")
-                        for note in match.group(1).split(',')
+                        for note in match.group(1).split(",")
                         if note.strip()
                     ]
-
                     fragrances.extend(notes)
 
-            print(
-                title,
-                description,
-                fragrances,
-                style
-            )
-            insertData(title, style, description, fragrances)
-            newPage.close()  
-        browser.close()
+            print(title, description, fragrances, style)
+            await insertData(title, style, description, fragrances)
+            await newPage.close()
 
-yankeeScrape()
+        await browser.close()
+
+
+if __name__ == "__main__":
+    asyncio.run(yankeeScrape())

@@ -7,10 +7,14 @@ import { addToCache } from './controllerUtils/addQueryToCache.js'
 
 export type CandleStyle = Database["candles"]["candle_style"];
 
-export type CandleQuery = {
+export type Candle = {
   candleName?: string;
   candleStyle?: CandleStyle;
   fragrances?: string[];
+}
+
+export type CandleQuery = {
+  candle: Candle;
   limit?: number;
   page?: number;
 };
@@ -18,19 +22,21 @@ export type CandleQuery = {
 export async function getCandles(req: Request, res: Response) {
   const validCandleStyles = [
     "jar",
-    "large lumbler",
-    "small lumbler",
+    "large tumbler",
+    "small tumbler",
     "three-wick",
     "mini",
   ];
 
   const candleQuery: CandleQuery = req.body.candleQuery;
 
-  const candleName = candleQuery.candleName?.toLowerCase();
+  const candle: Candle = candleQuery.candle; 
 
-  const candleStyle = candleQuery.candleStyle;
+  const candleName = candle.candleName?.toLowerCase();
 
-  const fragranceArray = candleQuery.fragrances;
+  const candleStyle = candle.candleStyle;
+
+  const fragranceArray = candle.fragrances;
 
   const limit = candleQuery.limit || 10;
 
@@ -49,7 +55,7 @@ export async function getCandles(req: Request, res: Response) {
       return res.status(400).json({ error: "Bad Request" });
     }
     
-    const cacheKey = generateCacheKey(candleQuery);
+    const cacheKey = generateCacheKey(candle);
     const cacheResult = await readFromCache(cacheKey);
 
     if(cacheResult !== null){

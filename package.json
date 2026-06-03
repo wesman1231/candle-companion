@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/wesman1231/candle-companion#readme",
   "dependencies": {
+    "dotenv": "^17.4.2",
     "vite": "^8.0.14"
   }
 }

@@ -1,0 +1,1 @@
+export type CandleStyle = "jar" | "large tumbler" | "small tumbler" | "three-wick" | "mini"
