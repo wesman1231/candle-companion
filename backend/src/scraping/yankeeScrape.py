@@ -88,7 +88,6 @@ async def yankeeScrape():
 
         while await moreResults.is_visible():
             await page.wait_for_timeout(random.uniform(2000, 4000))
-
             await moreResults.click()
 
 
@@ -176,7 +175,8 @@ async def yankeeScrape():
 
             print(title, description, fragrances, style, image_url)
             if await insertData(title, style, description, fragrances, image_url) == False:
-                await newPage.close()
+                print("database up to date")
+                break
             await newPage.close()
 
         await browser.close()
