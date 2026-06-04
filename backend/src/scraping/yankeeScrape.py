@@ -85,7 +85,8 @@ async def yankeeScrape():
 
         moreResults = page.get_by_role("button").get_by_text("More Results")
         await closeAd(page)
-
+        
+        #load all results
         while await moreResults.is_visible():
             await page.wait_for_timeout(random.uniform(2000, 4000))
             await moreResults.click()
@@ -97,6 +98,7 @@ async def yankeeScrape():
             "(candles) => candles.map((candle) => candle.getAttribute('href'))"
         )
 
+        #for each candle, open a new page and scrape the candle data
         for link in links:
             await page.wait_for_timeout(random.uniform(2000, 5500))
 
@@ -135,12 +137,13 @@ async def yankeeScrape():
                 description = "none"
             fragrances = []
 
+            #Regex to extract fragrances
             patterns = [
                 r"Top\s*(?:notes?)?\s*:\s*(.*?)(?=(?:Mid|Middle)\s*(?:notes?)?\s*:|Base\s*(?:Notes?)?\s*:|Top note is|$)",
                 r"(?:Mid|Middle)\s*(?:notes?)?\s*:\s*(.*?)(?=Base\s*(?:notes?)?\s*:|Top note is|$)",
                 r"Base\s*(?:notes?)?\s*:\s*(.*?)(?=Top note is|$)",
             ]
-
+            
             style = "not listed"
             current_url = newPage.url
             if "original-jar-candle" in current_url:
@@ -158,6 +161,7 @@ async def yankeeScrape():
             elif "mini-candles" in current_url:
                 style = "mini"
 
+            #loop through each regex pattern and grab the fragrances
             for pattern in patterns:
                 match = re.search(pattern, candleInfo)
 
@@ -174,6 +178,8 @@ async def yankeeScrape():
             image_url = await thumbnail_container.locator("img").first.get_attribute("src")
 
             print(title, description, fragrances, style, image_url)
+
+            #if candle is already in database, end script, as all subsequent candles will also already be in the db as page goes in order of newest to oldest
             if await insertData(title, style, description, fragrances, image_url) == False:
                 print("database up to date")
                 break
