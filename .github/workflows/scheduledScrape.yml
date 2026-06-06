@@ -25,6 +25,6 @@ jobs:
             - name: Run Scrapers
               run: |
                     for script in backend/src/scraping/*.py; do
-                        xvfb-run "$script" &
+                        xvfb-run python "$script" &
                     done
                     wait
