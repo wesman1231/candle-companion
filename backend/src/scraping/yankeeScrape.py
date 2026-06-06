@@ -13,7 +13,7 @@ async def insertData(candleName, candleStyle, candleDescription, fragrances, can
     dbName = os.getenv("DB_NAME")
     dbUser = os.getenv("DB_USER")
     dbPassword = os.getenv("DB_PASSWORD")
-    dbHost = os.getenv("DB_HOST", "127.0.0.1")
+    dbHost = os.getenv("DB_HOST")
 
     async with await psycopg.AsyncConnection.connect(
         f"dbname={dbName} user={dbUser} password={dbPassword} host={dbHost}"
