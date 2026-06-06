@@ -87,7 +87,7 @@ async def yankeeScrape():
         await closeAd(page)
         
         #load all results
-        while await moreResults.is_visible():
+        while await moreResults.is_visible() and await moreResults.is_enabled():
             await page.wait_for_timeout(random.uniform(2000, 4000))
             await moreResults.click()
 
