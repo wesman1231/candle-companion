@@ -1,0 +1,8 @@
+dotenv==0.9.9
+greenlet==3.5.1
+playwright==1.60.0
+psycopg==3.3.4
+psycopg-binary==3.3.4
+pyee==13.0.1
+python-dotenv==1.2.2
+typing_extensions==4.15.0

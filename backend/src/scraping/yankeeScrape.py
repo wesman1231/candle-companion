@@ -4,7 +4,7 @@ import random
 import re
 from dotenv import load_dotenv
 from playwright.async_api import async_playwright
-import psycopg
+import psycopg  
 
 load_dotenv()
 
