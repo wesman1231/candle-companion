@@ -5,5 +5,5 @@ ENV/
 env/
 
 # Node dependencies (if applicable)
-node_modules/.venv/
+node_modules
 .venv/
