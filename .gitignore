@@ -1,0 +1,9 @@
+# Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+
+# Node dependencies (if applicable)
+node_modules/.venv/
+.venv/
