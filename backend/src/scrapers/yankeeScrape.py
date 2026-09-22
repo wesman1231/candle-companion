@@ -10,10 +10,6 @@ dbName = os.getenv("dbName")
 dbUser = os.getenv("dbUser")
 dbPassword = os.getenv("dbPassword")
 
-print(f"Database Name: {dbName}")
-print(f"Database User: {dbUser}")
-print(f"Database Password: {dbPassword}")
-
 links = []
 
 def getLinks():
