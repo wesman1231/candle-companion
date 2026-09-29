@@ -10,8 +10,6 @@ dbName = os.getenv("dbName")
 dbUser = os.getenv("dbUser")
 dbPassword = os.getenv("dbPassword")
 
-print(f"Connecting to database: '{dbName}' as user: '{dbUser}'")
-
 links = []
 
 def getLinks():
@@ -62,11 +60,11 @@ def getCandleFragrances(page):
 def saveCandleData(candleName, candleThumbnail, fragrances):
     with conn.transaction():
         insertCandle = ("""
-            INSERT INTO candles (candle_name, candle_thumbnail) VALUES (%s, %s)
+            INSERT INTO candles (candle_name, candle_thumbnail, candle_brand) VALUES (%s, %s, %s)
             RETURNING candle_id;
         """)
 
-        cur.execute(insertCandle, (candleName, candleThumbnail))
+        cur.execute(insertCandle, (candleName, candleThumbnail, "yankee"))
 
         candleId = cur.fetchone()[0]
 
@@ -94,11 +92,6 @@ sb = sb_cdp.Chrome()
 endpoint_url = sb.get_endpoint_url()
 with psycopg.connect(f"host=127.0.0.1 dbname={dbName} user={dbUser} password={dbPassword}") as conn:
     with conn.cursor() as cur:
-        cur.execute("SELECT inet_server_port(), current_database(), pg_backend_pid();")
-        print("Python is connected to:", cur.fetchone())
-        
-        cur.execute("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';")
-        print("Tables Python can see:", cur.fetchall())
         with sync_playwright() as p:
             browser = p.chromium.connect_over_cdp(endpoint_url)
             page = browser.contexts[0].pages[0]
