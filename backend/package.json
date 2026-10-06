@@ -1,0 +1,28 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/wesman1231/candle-companion#readme",
+  "bugs": {
+    "url": "https://github.com/wesman1231/candle-companion/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wesman1231/candle-companion.git"
+  },
+  "license": "ISC",
+  "author": "Wesley",
+  "type": "module",
+  "main": "server.ts",
+  "scripts": {
+    "test": "test"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "kysely": "^0.29.6"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.6.4"
+  }
+}
