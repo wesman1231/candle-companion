@@ -9,20 +9,20 @@ import type{
 import type { UUID } from 'node:crypto'
 
 export interface Database {
-  candle: CandleTable,
-  fragrance: FragranceTable,
-  candle_fragrance: CandleFragranceTable
+  candles: CandleTable,
+  fragrances: FragranceTable,
+  candles_fragrances: CandleFragranceTable
 }
 
 export interface CandleTable {
-  id: Generated<UUID>
-  name: string
-  brand: string
+  candle_id: Generated<UUID>
+  candle_name: string
+  candle_brand: string
 }
 
 export interface FragranceTable {
-  id: Generated<UUID>
-  name: string
+  fragrance_id: Generated<UUID>
+  fragrance_name: string
 }
 
 export interface CandleFragranceTable {

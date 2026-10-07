@@ -8,9 +8,9 @@ import time
 
 load_dotenv() 
 
-dbName = os.getenv("dbName")
-dbUser = os.getenv("dbUser")
-dbPassword = os.getenv("dbPassword")
+dbName = os.getenv("DB_NAME")
+dbUser = os.getenv("DB_USER")
+dbPassword = os.getenv("DB_PASSWORD")
 wait_time = random.uniform(5, 12)
 
 def getLinks():
