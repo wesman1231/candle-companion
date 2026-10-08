@@ -17,6 +17,7 @@ export interface Database {
 export interface CandleTable {
   candle_id: Generated<UUID>
   candle_name: string
+  candle_thumbnail: string
   candle_brand: string
 }
 

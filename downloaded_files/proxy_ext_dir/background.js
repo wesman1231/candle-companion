@@ -13,8 +13,8 @@ chrome.proxy.settings.set({value: config, scope: "regular"}, function() {});
 function callbackFn(details) {
     return {
         authCredentials: {
-            username: "d6293c7d9dee092b1d7c",
-            password: "337356438fdcde8e"
+            username: process.env.PROXY_USERNAME,
+            password: process.env.PROXY_PASSWORD
         }
     };
 }

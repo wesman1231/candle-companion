@@ -11,9 +11,13 @@ load_dotenv()
 dbName = os.getenv("DB_NAME")
 dbUser = os.getenv("DB_USER")
 dbPassword = os.getenv("DB_PASSWORD")
+proxyUser = os.getenv("PROXY_USER")
+proxyPassword = os.getenv("PROXY_PASSWORD")
+proxyHost = os.getenv("PROXY_HOST")
+proxyPort = os.getenv("PROXY_PORT")
 wait_time = random.uniform(5, 12)
 
-def getLinks():
+def getLinks(page):
     candlesContainer = page.locator(".sf-product-list-page")
 
     candles = candlesContainer.locator(".product-tile-container").locator("a").all()
@@ -22,6 +26,7 @@ def getLinks():
     for candle in candles:
         link = candle.get_attribute("href")
         links.append(link)
+        
 
     print(links)
     return links
@@ -33,7 +38,7 @@ def getCandleName(page):
 
 
 def getCandleImage(page):
-    candleImage = page.get_attribute('[data-testid="product-image"]', "src")
+    candleImage = page.get_attribute('[aria-label="Product Image"]', "src")
     print(candleImage)
     return candleImage
 
@@ -48,13 +53,14 @@ def getCandleFragrances(page):
             """)
 
     fragranceText = []
-    
-    for i in range(len(fragranceTextArray)):
-            split = fragranceTextArray[i][0].split(",")
-            for j in range(len(split)):
-                fragranceText.append(split[j].strip())
+    for frag_group in fragranceTextArray:
+        if frag_group:  # Check array is not empty
+            split = frag_group[0].split(",")
+            for item in split:
+                if item.strip():
+                    fragranceText.append(item.strip())
 
-    print(fragranceText)
+    print(f"Fragrances: {fragranceText}")
     return fragranceText
 
      
@@ -95,28 +101,34 @@ def saveCandleData(candleName, candleThumbnail, fragrances):
 def scrapeCandles(links):
     for link in links:
         newPage = browser.contexts[0].new_page()
-        newPage.wait_for_timeout(200)
-        newPage.goto(f"https://www.yankeecandle.com{link}")
-        time.sleep(wait_time)
+        try:
+            newPage.goto(f"https://www.yankeecandle.com{link}", wait_until="domcontentloaded")
+            time.sleep(wait_time)
+            
+            candle_name = getCandleName(newPage)
+            candle_img = getCandleImage(newPage)
+            fragrances = getCandleFragrances(newPage)
+            
+            saveCandleData(candle_name, candle_img, fragrances)
+        finally:
+            newPage.close()
 
-        saveCandleData(getCandleName(newPage), getCandleImage(newPage), getCandleFragrances(newPage))
 
 
+#
 
-
-
-sb = sb_cdp.Chrome(headless=False)
+sb = sb_cdp.Chrome(use_chromium=True)
+sb.goto("https://www.yankeecandle.com/yankee-candle/candles/?offset=48", proxy=f"{proxyUser}:{proxyPassword}@{proxyHost}:{proxyPort}")
 endpoint_url = sb.get_endpoint_url()
 with psycopg.connect(f"host=127.0.0.1 dbname={dbName} user={dbUser} password={dbPassword}") as conn:
     with conn.cursor() as cur:
         with sync_playwright() as p:
             browser = p.chromium.connect_over_cdp(endpoint_url)
             page = browser.contexts[0].pages[0]
-            page.goto("https://www.yankeecandle.com/yankee-candle/candles/")
             page.wait_for_timeout(5000)
             page.keyboard.press("Escape")
             while True:
-                scrapeCandles(getLinks())
+                scrapeCandles(getLinks(page))
                 nextButton = page.locator('[aria-label="Next Page"]').first
                 if nextButton.is_enabled():
                     nextButton.click()
