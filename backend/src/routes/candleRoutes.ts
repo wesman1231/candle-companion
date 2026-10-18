@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { getCandles } from '../controllers/candlesController';
+import { searchCandles } from '../controllers/candlesController';
 
 const router = Router();
 
-router.get('/candles', getCandles);
+router.get('/candles', searchCandles);
 
 export default router;
