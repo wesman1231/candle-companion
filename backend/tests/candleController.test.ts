@@ -1,76 +1,62 @@
+import { db } from '../src/db/dbInstance'
+import { describe, expect, test, vi } from 'vitest'
+import type { Request, Response } from 'express'
+import { searchCandles } from '../src/controllers/candlesController'
 
-import { describe, test, expect } from 'vitest';
-import { db } from '../backend/src/db/dbInstance';
+const mockdb = vi.spyOn(db, 'selectFrom').mockReturnValue({
+  innerJoin: vi.fn().mockReturnThis(),
+  select: vi.fn().mockReturnThis(),
+  where: vi.fn().mockReturnThis(),
+  groupBy: vi.fn().mockReturnThis(),
+  having: vi.fn().mockReturnThis(),
+  execute: vi.fn().mockResolvedValue([]),
+} as any)
 
-describe('Should modify the query based on what filters are passed in', () => {
-  test('Should modify the query based on what filters are passed in', () => {
-    const name = 'Test Candle';
+const candleName = 'Test Candle'
+
+describe('Candle search query should be modified based on what filters are passed in', () => {
+  test('should call where with candle_name when name is passed in', async () => {
+    const req = { query: { name: candleName } } as unknown as Request;
+    const res = { status: vi.fn().mockReturnThis(), json: vi.fn() } as unknown as Response;
+
+    await searchCandles(req, res);
+
+    const query = mockdb.mock.results[0]!.value;
+
+  expect(query.where).toHaveBeenCalledWith('c.candle_name', '=', candleName);
+  expect(query.execute).toHaveBeenCalled();
+  });
+
+  test('should call where with candle_brand when brand is passed in', async () => {
     const brand = 'Test Brand';
-    const fragrances = ['Lavender', 'Vanilla'];
+    const req = { query: { brand } } as unknown as Request;
+    const res = { status: vi.fn().mockReturnThis(), json: vi.fn() } as unknown as Response;
 
-    let query = db
-      .selectFrom('candles as c')
-      .innerJoin('candles_fragrances as cf', 'c.candle_id', 'cf.candle_id')
-      .innerJoin('fragrances as f', 'cf.fragrance_id', 'f.fragrance_id')
-      .select([
+    await searchCandles(req, res);
+
+    const query = mockdb.mock.results[0]!.value;
+
+    expect(query.where).toHaveBeenCalledWith('c.candle_brand', '=', brand);
+    expect(query.execute).toHaveBeenCalled();
+  });
+
+  test('should call where with fragrance_name when fragrance is passed in, as well as groupBy and having', async () => {
+    const fragrances = ['Vanilla', 'Lavender'];
+    const req = { query: { fragrances } } as unknown as Request;
+    const res = { status: vi.fn().mockReturnThis(), json: vi.fn() } as unknown as Response;
+
+    await searchCandles(req, res);
+
+    const query = mockdb.mock.results[0]!.value;
+
+    expect(query.where).toHaveBeenCalledWith('f.fragrance_name', 'in', fragrances);
+    expect(query.groupBy).toHaveBeenCalledWith([
         'c.candle_id',
         'c.candle_name',
         'c.candle_thumbnail',
         'c.candle_brand',
-      ]);
-
-    if (name) {
-      query = query.where('c.candle_name', '=', name);
-
-      const compiled = query.compile();
-
-      expect(compiled.sql).toContain('candle_name');
-      expect(compiled.sql).toContain('=');
-      expect(compiled.parameters).toContain(name);
-    }
-
-    if (brand) {
-      query = query.where('c.candle_brand', '=', brand);
-
-      const compiled = query.compile();
-
-      expect(compiled.sql).toContain('candle_brand');
-      expect(compiled.sql).toContain('=');
-      expect(compiled.parameters).toContain(brand);
-    }
-
-    if (fragrances.length > 0) {
-      query = query.where('f.fragrance_name', 'in', fragrances);
-
-      const compiled = query.compile();
-
-      expect(compiled.sql).toContain('fragrance_name');
-      expect(compiled.sql.toLowerCase()).toContain('in');
-      expect(compiled.parameters).toEqual(
-        expect.arrayContaining(fragrances),
-      );
-
-      query = query
-        .groupBy([
-          'c.candle_id',
-          'c.candle_name',
-          'c.candle_thumbnail',
-          'c.candle_brand',
-        ])
-        .having((eb) =>
-          eb(
-            eb.fn.count('f.fragrance_name').distinct(),
-            '=',
-            fragrances.length,
-          ),
-        );
-
-      const finalCompiled = query.compile();
-
-      expect(finalCompiled.sql.toLowerCase()).toContain('group by');
-      expect(finalCompiled.sql.toLowerCase()).toContain('having');
-      expect(finalCompiled.sql.toLowerCase()).toContain('count');
-      expect(finalCompiled.parameters).toContain(fragrances.length);
-    }
+    ]);
+    expect(query.having).toHaveBeenCalled();
+    expect(query.execute).toHaveBeenCalled();
   });
-});
+})
