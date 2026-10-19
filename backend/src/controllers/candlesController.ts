@@ -27,7 +27,7 @@ export const searchCandles = async (req: Request, res: Response) => {
     query = query.where('c.candle_brand', '=', brand);
   }
 
-  if(fragrances){
+  if(fragrances.length > 0){
     query = query.where('f.fragrance_name', 'in', fragrances as string[]);
     query = query.groupBy(['c.candle_id', 'c.candle_name', 'c.candle_thumbnail', 'c.candle_brand']);
     query = query.having((eb) => eb(eb.fn.count('f.fragrance_name').distinct(), '=', fragrances.length));

@@ -1,5 +1,5 @@
 import { db } from '../src/db/dbInstance'
-import { describe, expect, test, vi } from 'vitest'
+import { describe, expect, test, vi, beforeEach } from 'vitest'
 import type { Request, Response } from 'express'
 import { searchCandles } from '../src/controllers/candlesController'
 
@@ -15,6 +15,11 @@ const mockdb = vi.spyOn(db, 'selectFrom').mockReturnValue({
 const candleName = 'Test Candle'
 
 describe('Candle search query should be modified based on what filters are passed in', () => {
+  
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   test('should call where with candle_name when name is passed in', async () => {
     const req = { query: { name: candleName } } as unknown as Request;
     const res = { status: vi.fn().mockReturnThis(), json: vi.fn() } as unknown as Response;
