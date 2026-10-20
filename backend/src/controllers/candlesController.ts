@@ -33,17 +33,15 @@ export const searchCandles = async (req: Request, res: Response) => {
       query = query.having((eb) => eb(eb.fn.count('f.fragrance_name').distinct(), '=', fragrances.length));
     }
 
-    // 🚨 This database operation can fail and throw an error
     const results = await query.execute();
 
     if (results.length === 0) {
       return res.status(200).json({ results: results, message: 'No candles found matching the search criteria.' });
     }
 
-    // Handled safely; the catch-all 500 block below is no longer needed for results.length
     return res.status(200).json({ results: results });
 
   } catch (error) {
-    return res.status(500).json({ message: 'An error occurred while searching for candles.', error: (error as Error).message });
+    return res.status(500).json({ message: 'An unexpected error occurred.'});
   }
 };
