@@ -14,6 +14,8 @@ const mockdb = vi.spyOn(db, 'selectFrom').mockReturnValue({
 
 const candleName = 'Test Candle'
 
+//Additional tests will be added to test pagination logic and other features as they are implemented in the future.
+
 describe('Candle search query should be modified based on what filters are passed in', () => {
 
     beforeEach(() => {
