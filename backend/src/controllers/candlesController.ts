@@ -35,10 +35,6 @@ export const searchCandles = async (req: Request, res: Response) => {
 
   const results = await query.execute();
 
-  if(!name && !brand && fragrances.length === 0) {
-    return res.status(400).json({ message: 'At least one search parameter (name, brand, or fragrances) must be provided.' });
-  }
-
   if (results.length === 0) {
     return res.status(200).json({ results: results, message: 'No candles found matching the search criteria.' });
   }

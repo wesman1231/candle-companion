@@ -99,14 +99,4 @@ describe('Candle search query should be modified based on what filters are passe
         expect(query.having).not.toHaveBeenCalled();
         expect(query.execute).toHaveBeenCalled();
     });
-
-    test('should return 400 when no search parameters are provided', async () => {
-        const req = { query: {} } as unknown as Request;
-        const res = { status: vi.fn().mockReturnThis(), json: vi.fn()} as unknown as Response;
-
-        await searchCandles(req, res);
-
-        expect(res.status).toHaveBeenCalledWith(400);
-        expect(res.json).toHaveBeenCalledWith({ message: 'At least one search parameter (name, brand, or fragrances) must be provided.' });
-    })
 });
