@@ -115,7 +115,7 @@ describe('Candle search query should be modified based on what filters are passe
     });
 });
 
-//CREATE TESTS FOR getCandleById FUNCTION
+
 describe('getCandleById function tests', () => {
     beforeEach(() => {
         vi.clearAllMocks();
