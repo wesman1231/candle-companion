@@ -1,5 +1,6 @@
-import type { Request, Response, NextFunction } from 'express'; // Added NextFunction
-import { db } from '../db/dbInstance';
+import type { Request, Response } from 'express';
+import { db } from '../db/dbInstance.ts';
+import { jsonArrayFrom } from 'kysely/helpers/postgres';
 import type { Candle, Fragrance, CandleFragrance } from '../db/dbTypes';
 
 export const searchCandles = async (req: Request, res: Response) => {
@@ -42,6 +43,47 @@ export const searchCandles = async (req: Request, res: Response) => {
     return res.status(200).json({ results: results });
 
   } catch (error) {
-    return res.status(500).json({ message: 'An unexpected error occurred.'});
+    return res.status(500).json({ message: 'An unexpected error occurred.' });
+  }
+};
+
+
+export const getCandleById = async (req: Request, res: Response) => {
+  try {
+    const candleId = req.params.id ? String(req.params.id) : undefined;
+
+    const candle = await db
+      .selectFrom('candles as c')
+      .select((eb) => [
+        'c.candle_id',
+        'c.candle_name',
+        'c.candle_thumbnail',
+        'c.candle_brand',
+        jsonArrayFrom(
+          eb
+            .selectFrom('candles_fragrances as cf')
+            .innerJoin(
+              'fragrances as f',
+              'cf.fragrance_id',
+              'f.fragrance_id'
+            )
+            .select(['f.fragrance_name', 'f.fragrance_id'])
+            .whereRef('cf.candle_id', '=', 'c.candle_id')
+        ).as('fragrances'),
+      ])
+      .where('c.candle_id', '=', candleId!)
+      .executeTakeFirst();
+
+    if (!candleId) {
+      return res.status(400).json({ message: '400: Candle ID is required.' });
+    }
+
+    if (!candle) {
+      return res.status(404).json({ message: '404: Candle not found.' });
+    }
+
+    return res.status(200).json({ results: candle });
+  } catch (error) {
+    return res.status(500).json({ message: 'An unexpected error occurred.' });
   }
 };

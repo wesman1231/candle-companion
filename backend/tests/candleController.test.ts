@@ -1,7 +1,18 @@
-import { db } from '../src/db/dbInstance'
-import { describe, expect, test, vi, beforeEach } from 'vitest'
-import type { Request, Response } from 'express'
-import { searchCandles } from '../src/controllers/candlesController'
+import { db } from '../src/db/dbInstance';
+import { describe, expect, test, vi, beforeEach } from 'vitest';
+import type { Request, Response } from 'express';
+import { searchCandles, getCandleById } from '../src/controllers/candlesController';
+
+const mockExecuteTakeFirst = vi.fn().mockResolvedValue({
+    candle_id: '12345678-1234-5678-1234-567812345678',
+    candle_name: 'Test Candle',
+    candle_thumbnail: 'test-thumbnail.jpg',
+    candle_brand: 'Test Brand',
+    fragrances: [
+        { fragrance_name: 'Vanilla', fragrance_id: '1' },
+        { fragrance_name: 'Lavender', fragrance_id: '2' },
+    ],
+});
 
 const mockdb = vi.spyOn(db, 'selectFrom').mockReturnValue({
     innerJoin: vi.fn().mockReturnThis(),
@@ -10,6 +21,7 @@ const mockdb = vi.spyOn(db, 'selectFrom').mockReturnValue({
     groupBy: vi.fn().mockReturnThis(),
     having: vi.fn().mockReturnThis(),
     execute: vi.fn().mockResolvedValue([]),
+    executeTakeFirst: mockExecuteTakeFirst
 } as any)
 
 const candleName = 'Test Candle'
@@ -100,5 +112,63 @@ describe('Candle search query should be modified based on what filters are passe
         expect(query.groupBy).not.toHaveBeenCalled();
         expect(query.having).not.toHaveBeenCalled();
         expect(query.execute).toHaveBeenCalled();
+    });
+});
+
+
+describe('getCandleById function tests', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    test('should return candle details when a valid candle ID is provided, and a 200 status code', async () => {
+        const mockCandle = {
+            candle_id: '12345678-1234-5678-1234-567812345678',
+            candle_name: 'Test Candle',
+            candle_thumbnail: 'test-thumbnail.jpg',
+            candle_brand: 'Test Brand',
+            fragrances: [
+                { fragrance_name: 'Vanilla', fragrance_id: '1' },
+                { fragrance_name: 'Lavender', fragrance_id: '2' },
+            ],
+        };
+
+        const req = { params: { id: mockCandle.candle_id } } as unknown as Request;
+        const res = { status: vi.fn().mockReturnThis(), json: vi.fn() } as unknown as Response;
+
+        await getCandleById(req, res);
+
+        const query = mockdb.mock.results[0]!.value;
+
+        expect(query.where).toHaveBeenCalledWith('c.candle_id', '=', mockCandle.candle_id);
+        expect(query.executeTakeFirst).toHaveBeenCalled();
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith({ results: mockCandle });
+    });
+
+    test('Should return a 404 status code when an invalid candle ID is provided', async () => {
+        const req = { params: { id: 'invalid-id' } } as unknown as Request;
+        const res = { status: vi.fn().mockReturnThis(), json: vi.fn() } as unknown as Response;
+
+        mockExecuteTakeFirst.mockResolvedValueOnce(null);
+
+        await getCandleById(req, res);
+
+        const query = mockdb.mock.results[0]!.value;
+
+        expect(query.where).toHaveBeenCalledWith('c.candle_id', '=', 'invalid-id');
+        expect(query.executeTakeFirst).toHaveBeenCalled();
+        expect(res.status).toHaveBeenCalledWith(404);
+        expect(res.json).toHaveBeenCalledWith({ message: '404: Candle not found.' });
+    });
+
+    test('Should return a 400 status code when no candle ID is provided', async () => {
+        const req = { params: { id: undefined } } as unknown as Request;
+        const res = { status: vi.fn().mockReturnThis(), json: vi.fn() } as unknown as Response;
+
+        await getCandleById(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({ message: '400: Candle ID is required.' });
     });
 });

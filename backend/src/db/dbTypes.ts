@@ -7,6 +7,7 @@ import type{
   Updateable,
 } from 'kysely'
 import type { UUID } from 'node:crypto'
+import type { StringDecoder } from 'node:string_decoder'
 
 export interface Database {
   candles: CandleTable,
@@ -15,20 +16,20 @@ export interface Database {
 }
 
 export interface CandleTable {
-  candle_id: Generated<UUID>
+  candle_id: string
   candle_name: string
   candle_thumbnail: string
   candle_brand: string
 }
 
 export interface FragranceTable {
-  fragrance_id: Generated<UUID>
+  fragrance_id: string
   fragrance_name: string
 }
 
 export interface CandleFragranceTable {
-  candle_id: UUID
-  fragrance_id: UUID
+  candle_id: string
+  fragrance_id: string
 }
 
 export type Candle = Selectable<CandleTable>
