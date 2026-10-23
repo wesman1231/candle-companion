@@ -25,6 +25,7 @@ export interface CandleTable {
 export interface FragranceTable {
   fragrance_id: string
   fragrance_name: string
+  fragrance_note: string
 }
 
 export interface CandleFragranceTable {

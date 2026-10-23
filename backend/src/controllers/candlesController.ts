@@ -7,7 +7,14 @@ export const searchCandles = async (req: Request, res: Response) => {
   try {
     const name = req.query.name ? String(req.query.name) : undefined;
     const brand = req.query.brand ? String(req.query.brand) : undefined;
+    const rawNotes = req.query.notes;
     const rawFragrances = req.query.fragrances;
+
+    const notes = Array.isArray(rawNotes)
+      ? rawNotes
+      : rawNotes
+        ? [rawNotes]
+        : [];
 
     const fragrances = Array.isArray(rawFragrances)
       ? rawFragrances
@@ -26,6 +33,12 @@ export const searchCandles = async (req: Request, res: Response) => {
 
     if (brand) {
       query = query.where('c.candle_brand', '=', brand);
+    }
+
+    if(notes.length > 0) {
+      query = query.where('f.fragrance_note', 'in', notes as string[]);
+      query = query.groupBy(['c.candle_id', 'c.candle_name', 'c.candle_thumbnail', 'c.candle_brand']);
+      query = query.having((eb) => eb(eb.fn.count('f.fragrance_note').distinct(), '=', notes.length));
     }
 
     if (fragrances.length > 0) {
