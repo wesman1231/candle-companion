@@ -61,6 +61,36 @@ describe('Candle search query should be modified based on what filters are passe
         expect(res.status).toHaveBeenCalledWith(200);
     });
 
+    test('should call where with fragrance_note when fragrance notes are passed in, as well as groupBy and having', async () => {
+        const notes = ['gourmand', 'floral'];
+        const req = { query: { notes } } as unknown as Request;
+        const res = {
+            status: vi.fn().mockReturnThis(),
+            json: vi.fn(),
+        } as unknown as Response;
+
+        await searchCandles(req, res);
+
+        const query = mockdb.mock.results[0]!.value;
+
+        expect(query.where).toHaveBeenCalledWith(
+            'f.fragrance_note',
+            'in',
+            notes,
+        );
+
+        expect(query.groupBy).toHaveBeenCalledWith([
+            'c.candle_id',
+            'c.candle_name',
+            'c.candle_thumbnail',
+            'c.candle_brand',
+        ]);
+
+        expect(query.having).toHaveBeenCalled();
+        expect(query.execute).toHaveBeenCalled();
+        expect(res.status).toHaveBeenCalledWith(200);
+    });
+
     test('should call where with fragrance_name when fragrance is passed in, as well as groupBy and having', async () => {
         const fragrances = ['Vanilla', 'Lavender'];
         const req = { query: { fragrances } } as unknown as Request;
