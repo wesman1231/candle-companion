@@ -2,7 +2,6 @@ import type { Request, Response } from 'express';
 import { db } from '../db/dbInstance.ts';
 import { jsonArrayFrom } from 'kysely/helpers/postgres';
 import type { Candle, Fragrance, CandleFragrance } from '../db/dbTypes';
-import { resolveTlsa } from 'node:dns';
 
 export const searchCandles = async (req: Request, res: Response) => {
   try {
