@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import { db } from '../db/dbInstance.ts';
 import { jsonArrayFrom } from 'kysely/helpers/postgres';
 import type { Candle, Fragrance, CandleFragrance } from '../db/dbTypes';
+import { resolveTlsa } from 'node:dns';
 
 export const searchCandles = async (req: Request, res: Response) => {
   try {
@@ -9,6 +10,8 @@ export const searchCandles = async (req: Request, res: Response) => {
     const brand = req.query.brand ? String(req.query.brand) : undefined;
     const rawNotes = req.query.notes;
     const rawFragrances = req.query.fragrances;
+    const sort = req.query.sort ? String(req.query.sort) : undefined;
+    const allowedSorts = new Set(['candle_name', 'candle_brand', 'fragrance_name', 'fragrance_note'])
 
     const notes = Array.isArray(rawNotes)
       ? rawNotes
@@ -22,32 +25,58 @@ export const searchCandles = async (req: Request, res: Response) => {
         ? [rawFragrances]
         : [];
 
-    let query = db.selectFrom('candles as c')
-      .innerJoin('candles_fragrances as cf', 'c.candle_id', 'cf.candle_id')
-      .innerJoin('fragrances as f', 'cf.fragrance_id', 'f.fragrance_id')
-      .select(['c.candle_id', 'c.candle_name', 'c.candle_thumbnail', 'c.candle_brand']);
-
-    if (name) {
-      query = query.where('c.candle_name', '=', name);
+    if (sort && !allowedSorts.has(sort)) {
+      return res.status(400).json({ message: `Invalid sort option: ${sort}` });
     }
 
-    if (brand) {
-      query = query.where('c.candle_brand', '=', brand);
+    function filterQuery() {
+      let query = db.selectFrom('candles as c')
+        .innerJoin('candles_fragrances as cf', 'c.candle_id', 'cf.candle_id')
+        .innerJoin('fragrances as f', 'cf.fragrance_id', 'f.fragrance_id')
+        .select(['c.candle_id', 'c.candle_name', 'c.candle_thumbnail', 'c.candle_brand']);
+
+      if (name) {
+        query = query.where('c.candle_name', '=', name);
+      }
+
+      if (brand) {
+        query = query.where('c.candle_brand', '=', brand);
+      }
+
+      if (notes.length > 0) {
+        query = query.where('f.fragrance_note', 'in', notes as string[]);
+        query = query.groupBy(['c.candle_id', 'c.candle_name', 'c.candle_thumbnail', 'c.candle_brand']);
+        query = query.having((eb) => eb(eb.fn.count('f.fragrance_note').distinct(), '=', notes.length));
+      }
+
+      if (fragrances.length > 0) {
+        query = query.where('f.fragrance_name', 'in', fragrances as string[]);
+        query = query.groupBy(['c.candle_id', 'c.candle_name', 'c.candle_thumbnail', 'c.candle_brand']);
+        query = query.having((eb) => eb(eb.fn.count('f.fragrance_name').distinct(), '=', fragrances.length));
+      }
+
+      if (sort && allowedSorts.has(sort)) {
+        if (sort === 'candle_name') {
+          query = query.orderBy('c.candle_name')
+        }
+
+        else if (sort === 'candle_brand') {
+          query = query.orderBy('c.candle_brand')
+        }
+
+        else if (sort === 'fragrance_name') {
+          query = query.orderBy('f.fragrance_name')
+        }
+
+        else if (sort === 'fragrance_note') {
+          query = query.orderBy('f.fragrance_note')
+        }
+      }
+
+      return query;
     }
 
-    if(notes.length > 0) {
-      query = query.where('f.fragrance_note', 'in', notes as string[]);
-      query = query.groupBy(['c.candle_id', 'c.candle_name', 'c.candle_thumbnail', 'c.candle_brand']);
-      query = query.having((eb) => eb(eb.fn.count('f.fragrance_note').distinct(), '=', notes.length));
-    }
-
-    if (fragrances.length > 0) {
-      query = query.where('f.fragrance_name', 'in', fragrances as string[]);
-      query = query.groupBy(['c.candle_id', 'c.candle_name', 'c.candle_thumbnail', 'c.candle_brand']);
-      query = query.having((eb) => eb(eb.fn.count('f.fragrance_name').distinct(), '=', fragrances.length));
-    }
-
-    const results = await query.execute();
+    const results = await filterQuery().execute();
 
     if (results.length === 0) {
       return res.status(200).json({ results: results, message: 'No candles found matching the search criteria.' });
