@@ -32,7 +32,7 @@ export const searchCandles = async (req: Request, res: Response) => {
       let query = db.selectFrom('candles as c')
         .innerJoin('candles_fragrances as cf', 'c.candle_id', 'cf.candle_id')
         .innerJoin('fragrances as f', 'cf.fragrance_id', 'f.fragrance_id')
-        .select(['c.candle_id', 'c.candle_name', 'c.candle_thumbnail', 'c.candle_brand']);
+        .select(['c.candle_id', 'c.candle_name', 'c.candle_thumbnail', 'c.candle_brand', 'c.candle_url']);
 
       if (name) {
         query = query.where('c.candle_name', '=', name);
