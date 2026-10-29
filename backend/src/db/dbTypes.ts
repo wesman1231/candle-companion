@@ -20,6 +20,7 @@ export interface CandleTable {
   candle_name: string
   candle_thumbnail: string
   candle_brand: string
+  candle_url: string
 }
 
 export interface FragranceTable {

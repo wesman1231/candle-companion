@@ -32,15 +32,19 @@ def getLinks(page):
     return links
 
 def getCandleName(page):
-    candleName = page.locator(".chakra-heading").first.inner_text()
+    candleName = page.locator(".chakra-heading").first.inner_text().lower()
     print(candleName)
     return candleName
 
 
 def getCandleImage(page):
-    candleImage = page.get_attribute('[aria-label="Product Image"]', "src")
-    print(candleImage)
-    return candleImage
+    try:
+        candleImage = page.get_attribute('[aria-label="Product Image"]', "src")
+        print(candleImage)
+        return candleImage
+    except:
+        print("no candle image found")
+        return None
 
 
 def getCandleFragrances(page):
@@ -52,28 +56,33 @@ def getCandleFragrances(page):
             })
             """)
 
-    fragranceText = []
+    rawFragranceText = []
     for frag_group in fragranceTextArray:
         if frag_group:  # Check array is not empty
             split = frag_group[0].split(",")
             for item in split:
                 if item.strip():
-                    fragranceText.append(item.strip())
+                    rawFragranceText.append(item.strip())
 
-    print(f"Fragrances: {fragranceText}")
+    print(f"Fragrances: {rawFragranceText}")
+    fragranceText = [fragrance.lower() for fragrance in rawFragranceText]
     return fragranceText
 
+def getCandleURL(page):
+    candleURL = page.url
+    print(candleURL)
+    return candleURL
      
-def saveCandleData(candleName, candleThumbnail, fragrances):
+def saveCandleData(candleName, candleThumbnail, fragrances, candleURL):
     with conn.transaction():
         insertCandle = """
-            INSERT INTO candles (candle_name, candle_thumbnail, candle_brand) 
-            VALUES (%s, %s, %s)
+            INSERT INTO candles (candle_name, candle_thumbnail, candle_brand, candle_url) 
+            VALUES (%s, %s, %s, %s)
             ON CONFLICT (candle_name) DO UPDATE
             SET candle_name = EXCLUDED.candle_name
             RETURNING candle_id;
         """
-        cur.execute(insertCandle, (candleName, candleThumbnail, "yankee"))
+        cur.execute(insertCandle, (candleName, candleThumbnail, "yankee", candleURL))
         candleId = cur.fetchone()[0]
 
         upsertFragrance = """
@@ -108,14 +117,13 @@ def scrapeCandles(links):
             candle_name = getCandleName(newPage)
             candle_img = getCandleImage(newPage)
             fragrances = getCandleFragrances(newPage)
+            candle_url = getCandleURL(newPage)
             
-            saveCandleData(candle_name, candle_img, fragrances)
+            saveCandleData(candle_name, candle_img, fragrances, candle_url)
         finally:
             newPage.close()
 
 
-
-#
 
 sb = sb_cdp.Chrome(use_chromium=True)
 sb.goto("https://www.yankeecandle.com/yankee-candle/candles/?offset=48", proxy=f"{proxyUser}:{proxyPassword}@{proxyHost}:{proxyPort}")
